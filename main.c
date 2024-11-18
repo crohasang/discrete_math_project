@@ -6,7 +6,7 @@ FILE* openFile(const char* filename, const char* mode) {
 	FILE* fp = fopen(filename, "r");
 
 	if (fp == NULL) {
-		printf("%s ÆÄÀÏÀ» ¿©´Âµ¥ ½ÇÆĞÇß½À´Ï´Ù.", filename);
+		printf("%s íŒŒì¼ì„ ì—¬ëŠ”ë° ì‹¤íŒ¨í–ˆìŠµë‹ˆë‹¤.", filename);
 		exit(1);
 	}
 	return fp;
@@ -18,7 +18,7 @@ void closeFile(FILE* fp) {
 	}
 }
 
-// input1.txt ÆÄÀÏÀ» ÀĞ´Â ¸Ş¼­µå
+// input1.txt íŒŒì¼ì„ ì½ëŠ” ë©”ì„œë“œ
 Graph* readGraphForTraversal(FILE* fp, int* graphNum) {
 	int vertices;
 
@@ -41,11 +41,11 @@ Graph* readGraphForTraversal(FILE* fp, int* graphNum) {
 	return graph;
 }
 
-// input2.txt ÆÄÀÏÀ» ÀĞ´Â ¸Ş¼­µå
+// input2.txt íŒŒì¼ì„ ì½ëŠ” ë©”ì„œë“œ
 Graph* readGraphForDijkstra(FILE* fp, int* graphNum) {
     int vertices;
     if (fscanf(fp, "%d", &vertices) != 1) {
-        return NULL;  // ÆÄÀÏÀÇ ³¡
+        return NULL;  // íŒŒì¼ì˜ ë
     }
 
     Graph* graph = createGraph(vertices);
@@ -55,7 +55,7 @@ Graph* readGraphForDijkstra(FILE* fp, int* graphNum) {
         while (1) {
             int adjacent, weight;
             if (fscanf(fp, "%d %d", &adjacent, &weight) != 2) break;
-            if (adjacent == 0) break;  // ÁÙÀÇ ³¡
+            if (adjacent == 0) break;  // ì¤„ì˜ ë
             addEdge(graph, vertex, adjacent, weight);
         }
     }
@@ -63,49 +63,49 @@ Graph* readGraphForDijkstra(FILE* fp, int* graphNum) {
     return graph;
 }
 
-// ±×·¡ÇÁ Å½»ö °á°ú Ãâ·Â ¸Ş¼­µå
+// ê·¸ë˜í”„ íƒìƒ‰ ê²°ê³¼ ì¶œë ¥ ë©”ì„œë“œ
 void printTraversalResults(Graph* graph, int graphNum) {
-    printf("±×·¡ÇÁ [%d]\n", graphNum);
+    printf("ê·¸ë˜í”„ [%d]\n", graphNum);
     printf("----------------------------\n");
 
-    printf("±íÀÌ ¿ì¼± Å½»ö\n");
-    DFS(graph, 1);  // ½ÃÀÛÁ¡Àº 1
+    printf("ê¹Šì´ ìš°ì„  íƒìƒ‰\n");
+    DFS(graph, 1);  // ì‹œì‘ì ì€ 1
     printf("\n");
 
-    printf("³Êºñ ¿ì¼± Å½»ö\n");
-    BFS(graph, 1);  // ½ÃÀÛÁ¡Àº 1
+    printf("ë„ˆë¹„ ìš°ì„  íƒìƒ‰\n");
+    BFS(graph, 1);  // ì‹œì‘ì ì€ 1
     printf("\n");
     printf("============================\n");
 }
 
-// ÃÖ´Ü °æ·Î °á°ú Ãâ·Â
+// ìµœë‹¨ ê²½ë¡œ ê²°ê³¼ ì¶œë ¥
 void printDijkstraResults(Graph* graph, int graphNum) {
-    printf("±×·¡ÇÁ [%d]\n", graphNum);
+    printf("ê·¸ë˜í”„ [%d]\n", graphNum);
     printf("----------------------------\n");
-    printf("½ÃÀÛÁ¡: 1\n");
+    printf("ì‹œì‘ì : 1\n");
 
-    dijkstra(graph, 1);  // ½ÃÀÛÁ¡Àº 1
+    dijkstra(graph, 1);  // ì‹œì‘ì ì€ 1
     printf("=========================\n");
 }
 
 int main() {
-    // 1. ±×·¡ÇÁ Å½¹æ
+    // 1. ê·¸ë˜í”„ íƒë°©
     FILE* fp1 = openFile("input1.txt", "r");
     int graphNum1 = 0;
     Graph* graph;
 
-    printf("1. ±×·¡ÇÁ Å½¹æ ¼öÇà °á°ú\n");
+    printf("1. ê·¸ë˜í”„ íƒë°© ìˆ˜í–‰ ê²°ê³¼\n");
     while ((graph = readGraphForTraversal(fp1, &graphNum1)) != NULL) {
         printTraversalResults(graph, graphNum1);
         destroyGraph(graph);
     }
     closeFile(fp1);
 
-    // 2. ÃÖ´Ü °æ·Î
+    // 2. ìµœë‹¨ ê²½ë¡œ
     FILE* fp2 = openFile("input2.txt", "r");
     int graphNum2 = 0;
 
-    printf("\n2. ÃÖ´Ü °æ·Î ±¸ÇÏ±â ¼öÇà °á°ú\n");
+    printf("\n2. ìµœë‹¨ ê²½ë¡œ êµ¬í•˜ê¸° ìˆ˜í–‰ ê²°ê³¼\n");
     while ((graph = readGraphForDijkstra(fp2, &graphNum2)) != NULL) {
         printDijkstraResults(graph, graphNum2);
         destroyGraph(graph);
