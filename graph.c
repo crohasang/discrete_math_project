@@ -3,14 +3,14 @@
 #include "graph.h"
 
 // 그래프 생성 및 초기화
-Graph* createGraph(int vertices) {
+Graph* createGraph(int vertices, int isWeighted) {
     Graph* graph = (Graph*)malloc(sizeof(Graph));
     if (graph == NULL) {
         return NULL;
     }
     
     graph->vertices = vertices;
-    graph->isWeighted = 0;
+    graph->isWeighted = isWeighted;
     
     // 인접 행렬 메모리 할당
     graph->adjacencyMatrix = (int**)malloc((vertices + 1) * sizeof(int*));
@@ -32,7 +32,12 @@ Graph* createGraph(int vertices) {
         }
         // 인접 행렬 초기화
         for (int j = 0; j <= vertices; j++) {
-            graph->adjacencyMatrix[i][j] = 0;
+            if (i > 0 && i == j){
+                graph->adjacencyMatrix[i][j] = 1;
+            }
+            else{
+                graph->adjacencyMatrix[i][j] = 0;
+            }
         }
     }
     
@@ -46,10 +51,8 @@ void addEdge(Graph* graph, int src, int dest, int weight) {
     }
     
     graph->adjacencyMatrix[src][dest] = weight;
-    graph->adjacencyMatrix[dest][src] = weight; // 무방향 그래프
-    
-    if (weight != 1) {
-        graph->isWeighted = 1;
+    if(graph->isWeighted == 0){ // 무방향 그래프
+        graph->adjacencyMatrix[dest][src] = weight;
     }
 }
 
