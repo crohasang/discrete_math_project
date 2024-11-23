@@ -1,175 +1,191 @@
+#define _CRT_SECURE_NO_WARNINGS
 #include <stdio.h>
 #include <stdlib.h>
-#include <locale.h>
 #include <string.h>
+#include <ctype.h>
 #include "graph.h"
 
 FILE* openFile(const char* filename, const char* mode) {
-	FILE* fp = fopen(filename, "r");
-
-	if (fp == NULL) {
-		printf("%s 파일을 여는데 실패했습니다.", filename);
-		exit(1);
-	}
-	return fp;
+    FILE* fp = fopen(filename, mode);
+    if (fp == NULL) {
+        printf("%s 파일을 여는데 실패했습니다.\n", filename);
+        exit(1);
+    }
+    return fp;
 }
 
 void closeFile(FILE* fp) {
-	if (fp != NULL) {
-		fclose(fp);
-	}
+    if (fp != NULL) {
+        fclose(fp);
+    }
 }
 
-// input1.txt 파일을 읽는 메서드
-Graph* readGraphForTraversal(FILE* fp, int* graphNum) {
-	int vertices;
+//파일 포인터를 받아 해당 포인터로부터 첫번째의 테스트 케이스를 추출, 그래프로 변형해서 반환.
+//만약 테스트 케이스가 더 없다면 NULL 반환.
+Graph* readGraphFromFile(FILE* fp, int* graphNum) {
+    char line[1024];
+    int vertexCount = 0;
 
-	if (fscanf(fp, "%d", &vertices) != 1) {
-		return NULL;
-	}
-
-	Graph* graph = createGraph(vertices, 0);
-
-    char* line = NULL;  // 동적 메모리 포인터
-    size_t len = 0;     // 버퍼 크기
-
-    getline(&line, &len, fp);   // dummy line 패스
-    for (int i = 1; i <= vertices; i++) {
-        int read = getline(&line, &len, fp); // 한 줄 읽기
-        if (read == -1) {
-            break; // EOF
+    while (1) {
+        if (!fgets(line, sizeof(line), fp)) {
+            return NULL;
         }
-        // 첫 번째 숫자는 출발 정점
-        int vertex;
-        char* token = strtok(line, " ");
-        if (token == NULL) {
-            continue; // 빈 줄 처리
+        char* ptr = line;
+        while (isspace(*ptr)) ptr++;
+        if (*ptr == '\0') continue;
+        vertexCount = atoi(ptr);
+        if (vertexCount <= 0) {
+            printf("잘못된 정점 수: %s\n", ptr);
+            return NULL;
         }
-        vertex = atoi(token);
-        // 나머지 숫자는 도착 정점
-        while ((token = strtok(NULL, " ")) != NULL) {
-            int adjacent = atoi(token);
-            addEdge(graph, vertex, adjacent, 1); // 인접 행렬에 추가
+        break;
+    }
+
+    Graph* graph = createGraph(vertexCount);
+
+    for (int i = 1; i <= vertexCount; i++) {
+        while (1) {
+            if (!fgets(line, sizeof(line), fp)) {
+                destroyGraph(graph);
+                return NULL;
+            }
+            char* ptr = line;
+            while (isspace(*ptr)) ptr++;
+            if (*ptr == '\0') {
+                continue;
+            }
+            char* token = strtok(ptr, " \t\n");
+            while (token != NULL) {
+                int adjacent = atoi(token);
+                addEdge(graph, i, adjacent, 1);
+                token = strtok(NULL, " \t\n");
+            }
+            break;
         }
     }
 
-    free(line); // 동적 메모리 해제
-	(*graphNum)++;
-	return graph;
-}
-
-// input2.txt 파일을 읽는 메서드
-Graph* readGraphForDijkstra(FILE* fp, int* graphNum) {
-    int vertices;
-    if (fscanf(fp, "%d", &vertices) != 1) {
-        return NULL;  // 파일의 끝
-    }
-
-    Graph* graph = createGraph(vertices, 1);
-
-    char* line = NULL;  // 동적 메모리 포인터
-    size_t len = 0;     // 버퍼 크기
-
-    getline(&line, &len, fp);   // dummy line 패스
-    for (int i = 1; i <= vertices; i++) {
-        int read = getline(&line, &len, fp); // 한 줄 읽기
-        if (read == -1) {
-            break; // EOF
-        }
-        // 첫 번째 숫자는 출발 정점
-        int vertex;
-        char* token = strtok(line, " ");
-        if (token == NULL) {
-            continue; // 빈 줄 처리
-        }
-        vertex = atoi(token);
-        // 나머지 숫자는 도착 정점
-        while ((token = strtok(NULL, " ")) != NULL) {
-            int adjacent = atoi(token);
-            int weight = atoi(strtok(NULL, " "));
-            addEdge(graph, vertex, adjacent, weight); // 인접 행렬에 추가
-        }
-    }
-
-    free(line); // 동적 메모리 해제
-
-    // for (int i = 1; i <= vertices; i++) {
-    //     int vertex;
-    //     fscanf(fp, "%d", &vertex);
-    //     while (1) {
-    //         int adjacent, weight;
-    //         if (fscanf(fp, "%d %d", &adjacent, &weight) != 2) break;
-    //         if (adjacent == 0) break;  // 줄의 끝
-    //         addEdge(graph, vertex, adjacent, weight);
-    //     }
-    // }
     (*graphNum)++;
     return graph;
 }
 
-// 그래프 탐색 결과 출력 메서드
+//유사한 방식으로 파일 포인터로부터 다익스트라에 필요한 테스트 케이스 추출, 그래프로 변환.
+Graph* readGraphForDijkstra(FILE* fp, int* graphNum) {
+    int vertices;
+    if (fscanf(fp, "%d", &vertices) != 1) {
+        return NULL;
+    }
+
+    Graph* graph = createGraph(vertices);
+    if (graph == NULL) {
+        printf("그래프 생성에 실패했습니다.\n");
+        return NULL;
+    }
+
+    char line[1024];
+
+    if (fgets(line, sizeof(line), fp) == NULL) {
+        destroyGraph(graph);
+        return NULL;
+    }
+
+    for (int i = 1; i <= vertices; i++) {
+        if (fgets(line, sizeof(line), fp) == NULL) {
+            printf("파일 형식이 올바르지 않습니다. 예상보다 적은 정점 수를 포함하고 있습니다.\n");
+            destroyGraph(graph);
+            return NULL;
+        }
+        char* ptr = line;
+        while (isspace(*ptr)) ptr++;
+        if (*ptr == '\0' || *ptr == '\n') {
+            printf("빈 줄이 발견되었습니다. 파일 형식을 확인해주세요.\n");
+            continue;
+        }
+
+        char* token = strtok(ptr, " \t\n");
+        if (token == NULL) {
+            printf("출발 정점 정보가 없습니다. 파일 형식을 확인해주세요.\n");
+            continue;
+        }
+
+        int vertex = atoi(token);
+        if (vertex <= 0 || vertex > vertices) {
+            printf("잘못된 정점 번호: %d\n", vertex);
+            continue;
+        }
+
+        while ((token = strtok(NULL, " \t\n")) != NULL) {
+            int adjacent = atoi(token);
+            token = strtok(NULL, " \t\n");
+            if (token == NULL) {
+                printf("가중치 정보가 누락되었습니다. 정점 %d의 간선을 확인해주세요.\n", vertex);
+                break;
+            }
+            int weight = atoi(token);
+            if (adjacent <= 0 || adjacent > vertices) {
+                printf("잘못된 인접 정점 번호: %d\n", adjacent);
+                continue;
+            }
+            if (weight < 0) {
+                printf("음수 가중치는 허용되지 않습니다. 정점 %d에서 %d로의 간선 무시.\n", vertex, adjacent);
+                continue;
+            }
+            addEdge(graph, vertex, adjacent, weight);
+        }
+    }
+
+    (*graphNum)++;
+    return graph;
+}
+
+//각각의 그래프에 대해서 DFS, BFS 실행, 출력 형식에 맞게 출력.
 void printTraversalResults(Graph* graph, int graphNum) {
     printf("그래프 [%d]\n", graphNum);
     printf("----------------------------\n");
-
     printf("깊이 우선 탐색\n");
-    DFS(graph, 1);  // 시작점은 1
+    DFS(graph, 1);
     printf("\n");
-
     printf("너비 우선 탐색\n");
-    BFS(graph, 1);  // 시작점은 1
+    BFS(graph, 1);
     printf("\n");
     printf("============================\n");
 }
 
-// 최단 경로 결과 출력
 void printDijkstraResults(Graph* graph, int graphNum) {
     printf("그래프 [%d]\n", graphNum);
     printf("----------------------------\n");
     printf("시작점: 1\n");
 
-    dijkstra(graph, 1);  // 시작점은 1
+    dijkstra(graph, 1);
     printf("=========================\n");
 }
 
 int main() {
-    setlocale(LC_ALL, "Korean");
+    FILE* fp = openFile("input1.txt", "r");
+    int graphNum = 0;
 
-    // 1. 그래프 탐방
-    FILE* fp1 = openFile("input1.txt", "r");
-    int graphNum1 = 0;
-    Graph* graph;
-
+    //테스트 케이스를 전부 추출해서 각각마다 printTrabersalResults 함수 호출.
     printf("1. 그래프 탐방 수행 결과\n");
-    while ((graph = readGraphForTraversal(fp1, &graphNum1)) != NULL) {
-        // 그래프 임시 출력
-        printf("그래프 정점 개수 : %d\n", graph->vertices);
-        printf("그래프 인접 행렬\n");
-        for(int i=0; i<=graph->vertices; i++){
-            for(int j=0; j<=graph->vertices; j++){
-                printf("%d ", graph->adjacencyMatrix[i][j]);
-            }
-            printf("\n");
+    while (1) {
+        Graph* graph = readGraphFromFile(fp, &graphNum);
+        if (graph == NULL) {
+            break;
         }
-        printf("가중치 그래프 여부 : %d\n\n", graph->isWeighted);
 
-        printTraversalResults(graph, graphNum1);
+        printTraversalResults(graph, graphNum);
         destroyGraph(graph);
     }
-    closeFile(fp1);
 
-    // 2. 최단 경로
+    closeFile(fp);
+
     FILE* fp2 = openFile("input2.txt", "r");
     int graphNum2 = 0;
-
+    Graph* graph;
+    //유사한 방식으로 그래프 추출 후 다익스트라 결과 출력.
     printf("\n2. 최단 경로 구하기 수행 결과\n");
     while ((graph = readGraphForDijkstra(fp2, &graphNum2)) != NULL) {
-        
-
         printDijkstraResults(graph, graphNum2);
         destroyGraph(graph);
     }
     closeFile(fp2);
-
     return 0;
 }
