@@ -9,6 +9,7 @@
 # 컴파일된 파일들
 program
 program.dSYM/
+program.exe
 *.o
 *.out
 
