@@ -9,7 +9,7 @@ typedef struct {
 } Graph;
 
 // 그래프 생성 및 초기화
-Graph* createGraph(int vertices);
+Graph* createGraph(int vertices, int isWeighted);
 
 // 간선 추가 함수
 // src: 출발 정점, dest: 도착 정점, weight: 가중치
