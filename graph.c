@@ -19,6 +19,10 @@ Graph* createGraph(int vertices, int isWeighted) {
         return NULL;
     }
     
+    int self = 1, other = 0;
+    if(isWeighted){
+        self = 0; other = -1;
+    }
     for (int i = 0; i <= vertices; i++) {
         graph->adjacencyMatrix[i] = (int*)malloc((vertices + 1) * sizeof(int));
         if (graph->adjacencyMatrix[i] == NULL) {
@@ -33,10 +37,10 @@ Graph* createGraph(int vertices, int isWeighted) {
         // 인접 행렬 초기화
         for (int j = 0; j <= vertices; j++) {
             if (i > 0 && i == j){
-                graph->adjacencyMatrix[i][j] = 1;
+                graph->adjacencyMatrix[i][j] = self;
             }
             else{
-                graph->adjacencyMatrix[i][j] = 0;
+                graph->adjacencyMatrix[i][j] = other;
             }
         }
     }
