@@ -22,13 +22,14 @@ void BFS(Graph* graph, int startVertex) {
     // 시작 정점을 방문 처리하고 큐에 추가
     visited[startVertex] = 1;
     queue[rear++] = startVertex;
-
-    printf("BFS 탐색 순서: ");
+    printf("%d", queue[front]);
 
     while (front < rear) {
         // 큐에서 정점 제거
         int currentVertex = queue[front++];
-        printf("%d ", currentVertex);
+        if (currentVertex != 1){
+            printf(" - %d", currentVertex);
+        }
 
         // 현재 정점의 모든 인접 정점 탐색
         for (int i = 1; i <= graph->vertices; i++) {
@@ -38,8 +39,6 @@ void BFS(Graph* graph, int startVertex) {
             }
         }
     }
-
-    printf("\n");
 
     // 메모리 해제
     free(visited);
