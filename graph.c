@@ -55,9 +55,6 @@ void addEdge(Graph* graph, int src, int dest, int weight) {
     }
     
     graph->adjacencyMatrix[src][dest] = weight;
-    if(graph->isWeighted == 0){ // 무방향 그래프
-        graph->adjacencyMatrix[dest][src] = weight;
-    }
 }
 
 // 그래프 메모리 해제
