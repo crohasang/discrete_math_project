@@ -22,7 +22,7 @@ void closeFile(FILE* fp) {
 
 //파일 포인터를 받아 해당 포인터로부터 첫번째의 테스트 케이스를 추출, 그래프로 변형해서 반환.
 //만약 테스트 케이스가 더 없다면 NULL 반환.
-Graph* readGraphFromFile(FILE* fp, int* graphNum) {
+Graph* readGraphForTraversal(FILE* fp, int* graphNum) {
     char line[1024];
     int vertexCount = 0;
 
@@ -41,7 +41,7 @@ Graph* readGraphFromFile(FILE* fp, int* graphNum) {
         break;
     }
 
-    Graph* graph = createGraph(vertexCount);
+    Graph* graph = createGraph(vertexCount, 0);
 
     for (int i = 1; i <= vertexCount; i++) {
         while (1) {
@@ -75,7 +75,7 @@ Graph* readGraphForDijkstra(FILE* fp, int* graphNum) {
         return NULL;
     }
 
-    Graph* graph = createGraph(vertices);
+    Graph* graph = createGraph(vertices, 1);
     if (graph == NULL) {
         printf("그래프 생성에 실패했습니다.\n");
         return NULL;
@@ -147,7 +147,7 @@ void printTraversalResults(Graph* graph, int graphNum) {
     printf("너비 우선 탐색\n");
     BFS(graph, 1);
     printf("\n");
-    printf("============================\n");
+    printf("============================\n\n");
 }
 
 void printDijkstraResults(Graph* graph, int graphNum) {
@@ -156,21 +156,17 @@ void printDijkstraResults(Graph* graph, int graphNum) {
     printf("시작점: 1\n");
 
     dijkstra(graph, 1);
-    printf("=========================\n");
+    printf("============================\n\n");
 }
 
 int main() {
     FILE* fp = openFile("input1.txt", "r");
     int graphNum = 0;
+    Graph* graph;
 
     //테스트 케이스를 전부 추출해서 각각마다 printTrabersalResults 함수 호출.
-    printf("1. 그래프 탐방 수행 결과\n");
-    while (1) {
-        Graph* graph = readGraphFromFile(fp, &graphNum);
-        if (graph == NULL) {
-            break;
-        }
-
+    printf("1. 그래프 탐방 수행 결과\n\n");
+    while ((graph = readGraphForTraversal(fp, &graphNum)) != NULL) {
         printTraversalResults(graph, graphNum);
         destroyGraph(graph);
     }
@@ -178,12 +174,11 @@ int main() {
     closeFile(fp);
 
     FILE* fp2 = openFile("input2.txt", "r");
-    int graphNum2 = 0;
-    Graph* graph;
+    graphNum = 0;
     //유사한 방식으로 그래프 추출 후 다익스트라 결과 출력.
-    printf("\n2. 최단 경로 구하기 수행 결과\n");
-    while ((graph = readGraphForDijkstra(fp2, &graphNum2)) != NULL) {
-        printDijkstraResults(graph, graphNum2);
+    printf("2. 최단 경로 구하기 수행 결과\n\n");
+    while ((graph = readGraphForDijkstra(fp2, &graphNum)) != NULL) {
+        printDijkstraResults(graph, graphNum);
         destroyGraph(graph);
     }
     closeFile(fp2);
